@@ -5,7 +5,7 @@
 #include "Datetime.h"
 #include "Mereni.h"
 
-typedef struct
+typedef struct seznamMereni
 {
 	int idSenzoru;
 	tDateTime datumOd;
@@ -26,18 +26,21 @@ tSeznamMereni *nactiMereni(int idSenzoru);
 void vypisVsechnaMereni();
 
 // odebere a vrátí požadované mìøení ze seznamu
-tMereni* odeberMereni(tDateTime timestamp);
+tMereni* odeberMereni(tSeznamMereni *origin, tDateTime timestamp);
 
 // smaž (dealokuj) všechny záznamy a tSeznam
-void dealokujSeznam();
+void dealokujSeznam(tSeznamMereni *seznam);
 
 // Výpoèet prùmìru pro všechny kombinace den v týdnu,
 // který vrátí dynamické 2D pole 7x24 „den v týdnu“ x „hodina dne“ (v litrech)
-float** analyzuj(tDateTime datumOd, tDateTime datumDo);
+float** analyzuj(tSeznamMereni *seznam, tDateTime datumOd, tDateTime datumDo);
 
 // smaž (dealokuj) matici
-void dealokujMatici();
+void dealokujMatici(float** matice);
 
 //vrátí odchylku v litrech daného záznamu (mìøení v dle timestamp) oproti správnému prùmìru z matice prùmìrù
-float dejOdchylku(tDateTime timestamp);
+float dejOdchylku(tSeznamMereni *seznam, float** matice, tDateTime timestamp);
+
+void vypisAvgMereni(float** avgMereni);
+void vypisSeznam(tSeznamMereni* seznam);
 #endif
