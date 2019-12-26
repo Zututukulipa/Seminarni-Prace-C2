@@ -288,14 +288,12 @@ float** analyzuj(tSeznamMereni* seznam, tDateTime datumOd, tDateTime datumDo)
 		free(dayHits[d]);
 	}
 	free(dayHits);
-	mereni = NULL;
-	free(mereni);
+	
 	return avgMereni;
 }
 
 void dealokujMatici(float** matice)
 {
-	//TODO tady je to nejaky nemocny, zase nemam pristup ke cteni :/
 	for (int d = 0; d < 7; ++d)
 	{
 		free(matice[d]);
@@ -307,7 +305,7 @@ float dejOdchylku(tSeznamMereni* seznam, float** matice, tDateTime timestamp)
 {
 	//TODO tady to pada, bud prepisu celej main a posilam primo ***matici, ale pak nefungujou metody, ktery ji pouzivaj, nebo nefunguje tohle
 	tMereni* mereni = findByTimestamp(seznam, timestamp);
-	float retValue = mereni->m3 - matice[timestamp.day][timestamp.hour];
+	float retValue = mereni->m3 - matice[timestamp.dayInWeek][timestamp.hour];
 	mereni = NULL;
 	free(mereni);
 	return retValue;

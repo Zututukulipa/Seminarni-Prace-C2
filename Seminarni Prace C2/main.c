@@ -56,11 +56,7 @@ void controls(tSeznamMereni* seznam, char* date, float** currentAnalysis)
 		{
 			if (currentAnalysis)
 			{
-				//TODO nejede, takze mam workaround
-				//dealokujMatici(currentAnalysis);
-				for (int i = 0; i < 7; ++i)
-					free(currentAnalysis[i]);
-				free(currentAnalysis);
+				dealokujMatici(currentAnalysis);
 			}
 
 			printf("FROM\nEnter date (yyyy-mm-dd hh:mm:ss):\n>");
@@ -92,9 +88,8 @@ void controls(tSeznamMereni* seznam, char* date, float** currentAnalysis)
 		break;
 	case 8:
 		if (!currentAnalysis){
-			for (int i = 0; i < 7; ++i)
-				free(currentAnalysis[i]);
-			free(currentAnalysis);
+			dealokujMatici(currentAnalysis);
+
 		}
 		controls(seznam, date, currentAnalysis);
 		break;
@@ -109,8 +104,8 @@ void controls(tSeznamMereni* seznam, char* date, float** currentAnalysis)
 			dealokujSeznam(seznam);
 		}if(currentAnalysis)
 		{
-			//TODO nejede...
-			//dealokujMatici(currentAnalysis);
+			dealokujMatici(currentAnalysis);
+
 		}
 		
 		
@@ -133,12 +128,8 @@ int main()
 	{
 		dealokujSeznam(seznam);
 	}
-	if (currentAnalysis)
-	{
-		for (int i = 0; i < 7; ++i)
-			free(currentAnalysis[i]);
-		free(currentAnalysis);
-	}
+	
+
 
 	if (_CrtDumpMemoryLeaks())
 	{

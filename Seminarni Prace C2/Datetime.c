@@ -15,9 +15,7 @@ int dejDenVTydnu(int r, int m, int d)
 tDateTime dejDateTime(char* datetime)
 {
 	tDateTime dateTime;
-	char* dat = calloc(20, sizeof(char));
-	strcpy(dat, datetime);
-	char* date = strtok(dat, " ");
+	char* date = strtok(datetime, " ");
 	char* year;
 	char* month;
 	char* day;
@@ -67,6 +65,5 @@ tDateTime dejDateTime(char* datetime)
 	dateTime.dayInWeek = dejDenVTydnu(dateTime.year, dateTime.month, dateTime.day);
 	//nekdy pada a nevim proc... re-run by mel fungovat...
 	//TODO zkusit vyresit
-	free(dat);
 	return dateTime;
 }
