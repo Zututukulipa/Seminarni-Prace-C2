@@ -7,6 +7,8 @@
 
 void controls(tSeznamMereni* seznam, char* date, float** currentAnalysis)
 {
+	tDateTime dateTime;
+	float odchylka = 0.0f;
 	int choiceId = -1;
 	printf(
 		"SENSOR CONTROLS\nplease choose your action..\n1. Display all measurements\n2. Load measurements\n3. Display loaded measurements\n4. Delete record\n5. Create Average Set\n6. Save Average Set\n7. Display deviation to Average Set\n8. Delete Average Set\n9. Unfocus Measuremets\n-----------------------\n>");
@@ -44,7 +46,7 @@ void controls(tSeznamMereni* seznam, char* date, float** currentAnalysis)
 		{
 			printf("Please, enter measurement timestamp..\nformat: 2018-06-01 01:00:00\n");
 			scanf("%s", &date);
-			odeberMereni(seznam, *dejDateTime(date));
+			odeberMereni(seznam, dejDateTime(date));
 			date = NULL;
 			controls(seznam, date, currentAnalysis);
 		}
@@ -52,8 +54,22 @@ void controls(tSeznamMereni* seznam, char* date, float** currentAnalysis)
 	case 5:
 		if (seznam)
 		{
-			currentAnalysis = analyzuj(seznam, *dejDateTime("2000-01-01 00:00:00"),
-			                           *dejDateTime("2100-12-12 23:59:59"));
+			if (currentAnalysis)
+			{
+				//TODO nejede, takze mam workaround
+				//dealokujMatici(currentAnalysis);
+				for (int i = 0; i < 7; ++i)
+					free(currentAnalysis[i]);
+				free(currentAnalysis);
+			}
+
+			printf("FROM\nEnter date (yyyy-mm-dd hh:mm:ss):\n>");
+			scanf(" %[^\n]", date);
+			dateTime = dejDateTime(date);
+			printf("TO\nEnter date (yyyy-mm-dd hh:mm:ss):\n>");
+			scanf(" %[^\n]", date);
+			currentAnalysis = analyzuj(seznam, dateTime,
+			                            dejDateTime(date));
 			vypisAvgMereni(currentAnalysis);
 			controls(seznam, date, currentAnalysis);
 		}
@@ -64,14 +80,22 @@ void controls(tSeznamMereni* seznam, char* date, float** currentAnalysis)
 		break;
 	case 7:
 		if (currentAnalysis)
-			vypisAvgMereni(currentAnalysis);
+		{
+			printf("Enter date (yyyy-mm-dd hh:mm:ss)\n");
+			scanf(" %[^\n]s", date);
+			odchylka = dejOdchylku(seznam, currentAnalysis, dejDateTime(date));
+			printf("\n\tDeviation of %s is:\n\t%f\n", date, odchylka);
+		}
 		else
 			printf("Average set is not yet created.\n");
 		controls(seznam, date, currentAnalysis);
 		break;
 	case 8:
-		if (!currentAnalysis)
-			dealokujMatici(currentAnalysis);
+		if (!currentAnalysis){
+			for (int i = 0; i < 7; ++i)
+				free(currentAnalysis[i]);
+			free(currentAnalysis);
+		}
 		controls(seznam, date, currentAnalysis);
 		break;
 	case 9:
@@ -80,18 +104,18 @@ void controls(tSeznamMereni* seznam, char* date, float** currentAnalysis)
 		controls(seznam, date, currentAnalysis);
 		break;
 	default:
-		if(seznam)
+		if (seznam)
 		{
 			dealokujSeznam(seznam);
-		}
-		if(currentAnalysis)
+		}if(currentAnalysis)
 		{
-			dealokujMatici(currentAnalysis);
+			//TODO nejede...
+			//dealokujMatici(currentAnalysis);
 		}
-		if(date)
-		{
-			free(date);
-		}
+		
+		
+
+
 		break;
 	}
 }
@@ -100,26 +124,29 @@ int main()
 {
 	tSeznamMereni* seznam = NULL;
 	int choiceId = -1;
-	char* date = NULL;
-	float** currentAnalysis = NULL;
-	controls(seznam, date, currentAnalysis);
+	char date[19];
+	float*** currentAnalysis = calloc(7, sizeof(float));
+	for (int i = 0; i < 7; ++i)
+		currentAnalysis[i] = calloc(24, sizeof(float));
+	controls(seznam, date, *currentAnalysis);
 	if (seznam)
 	{
 		dealokujSeznam(seznam);
 	}
 	if (currentAnalysis)
 	{
-		dealokujMatici(currentAnalysis);
+		for (int i = 0; i < 7; ++i)
+			free(currentAnalysis[i]);
+		free(currentAnalysis);
 	}
-	if (date)
+
+	if (_CrtDumpMemoryLeaks())
 	{
-		free(date);
-	}
-	if(_CrtDumpMemoryLeaks())
-	{
+		//TODO kdyz pouzivam workaround na tu dealokaci, tak mi porad nekde lita jeden zaznam a ani za hovno ho nemuzu najit :/
 		//Kurva...
 		printf("UNALLOCATED MEMORY!");
-	}else
+	}
+	else
 	{
 		printf("MEMORY SUCCESSFULLY DELETED");
 	}

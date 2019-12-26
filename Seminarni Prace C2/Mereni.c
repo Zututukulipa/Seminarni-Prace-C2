@@ -5,7 +5,7 @@
 
 tMereni* vytvorMereni(int idMereni, tDateTime ts, float m3)
 {
-	tMereni *vytvoreneMereni = calloc(1,sizeof(tMereni));
+	tMereni *vytvoreneMereni = malloc(sizeof(tMereni));
 	if (vytvoreneMereni) {
 		vytvoreneMereni->idMereni = idMereni;
 		vytvoreneMereni->timestamp = ts;

@@ -16,5 +16,5 @@ typedef struct
 int dejDenVTydnu(int r, int m, int d);
 
 //pøevádí vstup (2018-05-01 01:00:00) na strukturu, využívá dejDenVTydnu
-tDateTime* dejDateTime(char* datetime);
+tDateTime dejDateTime(char* datetime);
 #endif

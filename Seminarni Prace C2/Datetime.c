@@ -12,12 +12,12 @@ int dejDenVTydnu(int r, int m, int d)
 
 
 //(2018-05-01 01:00:00)
-tDateTime* dejDateTime(char* datetime)
+tDateTime dejDateTime(char* datetime)
 {
-	tDateTime *dateTime = calloc(1, sizeof(tDateTime));
-	char* datum = calloc(20, sizeof(char));
-	strcpy(datum, datetime);
-	char* date = strtok(datum, " ");
+	tDateTime dateTime;
+	char* dat = calloc(20, sizeof(char));
+	strcpy(dat, datetime);
+	char* date = strtok(dat, " ");
 	char* year;
 	char* month;
 	char* day;
@@ -58,13 +58,15 @@ tDateTime* dejDateTime(char* datetime)
 		
 	}
 
-	dateTime->year = atoi(year);
-	dateTime->month = atoi(month);
-	dateTime->day = atoi(day);
-	dateTime->hour = atoi(hour);
-	dateTime->min = atoi(minute);
-	dateTime->sec = atoi(second);
-	dateTime->dayInWeek = dejDenVTydnu(dateTime->year, dateTime->month, dateTime->day);
-	
+	dateTime.year = atoi(year);
+	dateTime.month = atoi(month);
+	dateTime.day = atoi(day);
+	dateTime.hour = atoi(hour);
+	dateTime.min = atoi(minute);
+	dateTime.sec = atoi(second);
+	dateTime.dayInWeek = dejDenVTydnu(dateTime.year, dateTime.month, dateTime.day);
+	//nekdy pada a nevim proc... re-run by mel fungovat...
+	//TODO zkusit vyresit
+	free(dat);
 	return dateTime;
 }

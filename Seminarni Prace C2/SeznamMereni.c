@@ -3,13 +3,23 @@
 #include <stdlib.h>
 #include <string.h>
 #include "SeznamMereni.h"
+dealokujMereni(tMereni* mereni)
+{
+	tMereni* tmp;
 
+	while (mereni != NULL)
+	{
+		tmp = mereni;
+		mereni = mereni->dalsi;
+		free(tmp);
+	}
+}
 tSeznamMereni* nactiMereni(int idSenzoru)
 {
 	FILE* fptr;
 	tSeznamMereni* seznamMereni = malloc(sizeof(tSeznamMereni));
 	seznamMereni->idSenzoru = idSenzoru;
-	tMereni* jednotlivaMereni = malloc(sizeof(tMereni));
+	tMereni* jednotlivaMereni;
 	int idMereni;
 	tDateTime datumMereni;
 	float m3Mereni;
@@ -55,7 +65,7 @@ tSeznamMereni* nactiMereni(int idSenzoru)
 			}
 			if (field_count == 2)
 			{
-				datumMereni = *dejDateTime(field);
+				datumMereni = dejDateTime(field);
 			}
 			field = strtok(NULL, ";");
 			field_count++;
@@ -85,8 +95,6 @@ tSeznamMereni* nactiMereni(int idSenzoru)
 
 	fclose(fptr);
 	seznamMereni->seznam = jednotlivaMereni;
-	tmpMereni = NULL;
-	free(tmpMereni);
 
 	return seznamMereni;
 }
@@ -96,7 +104,7 @@ void vypisVsechnaMereni()
 	FILE* fptr;
 	tMereni* jednotlivaMereni = malloc(sizeof(tMereni));
 	int idMereni = 0;
-	tDateTime datumMereni = {0, 0, 0, 0, 0, 0};
+	tDateTime datumMereni;
 	float m3Mereni = 0;
 
 	fptr = fopen("data.csv", "r");
@@ -137,18 +145,18 @@ void vypisVsechnaMereni()
 
 			if (field_count == 2)
 			{
-				datumMereni = *dejDateTime(field);
+				datumMereni = dejDateTime(field);
 			}
 			field = strtok(NULL, ";");
 			++field_count;
 		}
 		free(last);
 		free(field);
-		
+
 		jednotlivaMereni = vytvorMereni(idMereni, datumMereni, m3Mereni);
 		vypisMereni(jednotlivaMereni);
 	}
-	dealokujSeznam(jednotlivaMereni);
+	dealokujMereni(jednotlivaMereni);
 	fclose(fptr);
 	free(fptr);
 }
@@ -159,6 +167,25 @@ int timestampTimeToSecs(tDateTime timestamp)
 
 	return retVal;
 }
+
+tMereni* findByTimestamp(tSeznamMereni* seznam, tDateTime timestamp)
+{
+	tMereni* tmp = seznam->seznam;
+	int timestampSec = timestampTimeToSecs(timestamp);
+
+	while (tmp->dalsi != NULL)
+	{
+		if (timestampSec == timestampTimeToSecs(tmp->timestamp) && timestamp.day == tmp->timestamp.day && timestamp.
+			month == tmp->timestamp.month && timestamp.year == tmp->timestamp.year)
+		{
+			return tmp;
+		}
+		tmp = tmp->dalsi;
+	}
+	printf("\nMeasurement not found.\n");
+	return NULL;
+}
+
 
 tMereni* odeberMereni(tSeznamMereni* origin, tDateTime timestamp)
 {
@@ -176,17 +203,16 @@ tMereni* odeberMereni(tSeznamMereni* origin, tDateTime timestamp)
 			free(seznam);
 			ret->dalsi = ret->dalsi->dalsi;
 			ret = NULL;
-			free(ret);
-;			return tmp;
+			free(ret);;
+			return tmp;
 		}
 		ret = ret->dalsi;
 	}
-	free(tmp);
-	free(seznam);
-	free(ret);
-	
+
 	return NULL;
 }
+
+
 
 void dealokujSeznam(tSeznamMereni* seznam)
 {
@@ -242,11 +268,12 @@ float** analyzuj(tSeznamMereni* seznam, tDateTime datumOd, tDateTime datumDo)
 		avgMereni[i] = calloc(24, sizeof(float));
 		dayHits[i] = calloc(24, sizeof(int));
 	}
-	int min = timestampTimeToSecs(datumOd);
-	int max = timestampTimeToSecs(datumDo);
+	int min = timestampTimeToSecs(datumOd) + 1000000 * datumOd.year + 100000 * datumOd.month + 10000 * datumOd.day;
+	int max = timestampTimeToSecs(datumDo) + 1000000 * datumDo.year + 100000 * datumDo.month + 10000 * datumDo.day;;
 	while (mereni->dalsi != NULL)
 	{
-		int currentTimeInSecs = timestampTimeToSecs(mereni->timestamp);
+		int currentTimeInSecs = timestampTimeToSecs(mereni->timestamp) + 1000000 * mereni->timestamp.year + 100000 *
+			mereni->timestamp.month + 10000 * mereni->timestamp.day;
 		if (currentTimeInSecs <= max && currentTimeInSecs >= min && mereni->m3 > 0)
 		{
 			avgMereni[mereni->timestamp.dayInWeek][mereni->timestamp.hour] += mereni->m3;
@@ -268,6 +295,7 @@ float** analyzuj(tSeznamMereni* seznam, tDateTime datumOd, tDateTime datumDo)
 
 void dealokujMatici(float** matice)
 {
+	//TODO tady je to nejaky nemocny, zase nemam pristup ke cteni :/
 	for (int d = 0; d < 7; ++d)
 	{
 		free(matice[d]);
@@ -277,9 +305,11 @@ void dealokujMatici(float** matice)
 
 float dejOdchylku(tSeznamMereni* seznam, float** matice, tDateTime timestamp)
 {
-	float** seznamTable = analyzuj(seznam, timestamp, timestamp);
-	float retValue = seznamTable[timestamp.day][timestamp.hour] - matice[timestamp.day][timestamp.hour];
-	dealokujMatici(seznamTable);
+	//TODO tady to pada, bud prepisu celej main a posilam primo ***matici, ale pak nefungujou metody, ktery ji pouzivaj, nebo nefunguje tohle
+	tMereni* mereni = findByTimestamp(seznam, timestamp);
+	float retValue = mereni->m3 - matice[timestamp.day][timestamp.hour];
+	mereni = NULL;
+	free(mereni);
 	return retValue;
 }
 
